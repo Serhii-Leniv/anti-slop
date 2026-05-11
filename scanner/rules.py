@@ -113,10 +113,10 @@ CODE_RULES = [
         "file_types": [".py"],
     },
 
-    # --- Magic numbers ---
+    # --- Magic numbers (excludes common HTTP codes, powers of 2, etc.) ---
     {
         "id": "magic_number",
-        "pattern": r"(?<!['\"\w])\b(?!0\b|1\b|2\b|100\b)\d{3,}\b(?!['\"\w])",
+        "pattern": r"(?<!['\"\w])\b(?!0\b|1\b|2\b|3\b|4\b|5\b|10\b|16\b|32\b|64\b|100\b|128\b|200\b|201\b|204\b|256\b|301\b|302\b|400\b|401\b|403\b|404\b|429\b|500\b|502\b|503\b|1000\b|1024\b|2048\b|4096\b)\d{3,}\b(?!['\"\w%])",
         "message": "magic number — extract to named constant",
         "severity": 1,
         "file_types": [".ts", ".tsx", ".js", ".jsx", ".py"],
@@ -130,6 +130,44 @@ CODE_RULES = [
         "severity": 2,
         "file_types": [".ts", ".tsx", ".js", ".jsx"],
     },
+
+    # --- Unhandled promise ---
+    {
+        "id": "unhandled_promise",
+        "pattern": r"\.then\s*\([^)]+\)\s*;",
+        "message": "unhandled promise — .then() with no .catch(), rejection silently lost",
+        "severity": 3,
+        "file_types": [".ts", ".tsx", ".js", ".jsx"],
+    },
+
+    # --- .catch swallows error ---
+    {
+        "id": "catch_console_error",
+        "pattern": r"\.catch\s*\(\s*console\.(error|log|warn)\s*\)",
+        "message": ".catch(console.error) — logs then swallows, caller never knows it failed",
+        "severity": 2,
+        "file_types": [".ts", ".tsx", ".js", ".jsx"],
+    },
+
+    # --- Hardcoded secrets ---
+    {
+        "id": "hardcoded_secret",
+        "pattern": r"(?i)(password|secret|api_key|apikey|token|auth_token)\s*=\s*['\"][^'\"]{4,}['\"]",
+        "message": "hardcoded secret — move to env var",
+        "severity": 3,
+        "file_types": [".ts", ".tsx", ".js", ".jsx", ".py", ".go", ".java", ".cs"],
+    },
+
+    # --- async without try/catch ---
+    {
+        "id": "async_no_trycatch",
+        "pattern": r"async\s+function\s+\w+[^{]*\{(?![^}]*try\s*\{)",
+        "message": "async function with no try/catch — unhandled rejection crashes silently",
+        "severity": 2,
+        "file_types": [".ts", ".tsx", ".js", ".jsx"],
+        "multiline": True,
+    },
+
 ]
 
 UI_RULES = [
@@ -198,6 +236,51 @@ UI_RULES = [
         "severity": 1,
         "file_types": [".tsx", ".jsx", ".css"],
     },
+
+    # --- Arbitrary z-index ---
+    {
+        "id": "z_index_arbitrary",
+        "pattern": r"z-index:\s*(999|9999|99999)|z-\[999\]|z-\[9999\]",
+        "message": "arbitrary z-index — use design system z-index scale",
+        "severity": 2,
+        "file_types": [".tsx", ".jsx", ".css", ".scss"],
+    },
+
+    # --- !important ---
+    {
+        "id": "css_important",
+        "pattern": r"!important",
+        "message": "!important — specificity hack, fix the selector instead",
+        "severity": 2,
+        "file_types": [".css", ".scss", ".tsx", ".jsx"],
+    },
+
+    # --- Missing aria on interactive elements ---
+    {
+        "id": "div_onclick_no_aria",
+        "pattern": r"<div[^>]+onClick[^>]*(?!aria-)[^>]*>",
+        "message": "div with onClick but no aria role — use <button> or add role+aria",
+        "severity": 2,
+        "file_types": [".tsx", ".jsx"],
+    },
+
+    # --- Roboto (same AI default as Inter) ---
+    {
+        "id": "roboto_font",
+        "pattern": r"['\"]Roboto['\"]|font-family:\s*Roboto|fontFamily:\s*['\"]Roboto",
+        "message": "Roboto font — AI default, no design intent. Pick deliberately.",
+        "severity": 2,
+        "file_types": [".tsx", ".jsx", ".css", ".scss"],
+    },
+
+    # --- Blue gradient (second most common AI color) ---
+    {
+        "id": "blue_gradient_generic",
+        "pattern": r"from-blue-500 to-purple|from-indigo.*to-purple|bg-gradient.*blue.*purple",
+        "message": "blue-to-purple gradient — AI signature combo, pick with intent",
+        "severity": 2,
+        "file_types": [".tsx", ".jsx"],
+    },
 ]
 
 PROSE_RULES = [
@@ -260,6 +343,162 @@ PROSE_RULES = [
         "pattern": r"(?i)not because.*\.\s+because",
         "message": "'Not because X. Because Y.' — AI dramatic structure",
         "severity": 2,
+        "file_types": [".md", ".txt"],
+    },
+
+    # --- High-frequency AI words (research-verified) ---
+    {
+        "id": "tapestry",
+        "pattern": r"(?i)\btapestry\b",
+        "message": "'tapestry' — 35x more common in AI text, spatial metaphor filler",
+        "severity": 3,
+        "file_types": [".md", ".txt"],
+    },
+    {
+        "id": "multifaceted",
+        "pattern": r"(?i)\bmultifaceted\b",
+        "message": "'multifaceted' — 28x more common in AI text, use 'complex' or be specific",
+        "severity": 3,
+        "file_types": [".md", ".txt"],
+    },
+    {
+        "id": "furthermore_moreover",
+        "pattern": r"(?i)\b(furthermore|moreover)\b",
+        "message": "'furthermore/moreover' — AI transition filler, cut or rewrite",
+        "severity": 2,
+        "file_types": [".md", ".txt"],
+    },
+    {
+        "id": "needless_to_say",
+        "pattern": r"(?i)needless to say",
+        "message": "'needless to say' — then don't say it",
+        "severity": 2,
+        "file_types": [".md", ".txt"],
+    },
+    {
+        "id": "paradigm_shift",
+        "pattern": r"(?i)paradigm[\s-]shift",
+        "message": "'paradigm shift' — overused buzzword, describe the actual change",
+        "severity": 2,
+        "file_types": [".md", ".txt"],
+    },
+    {
+        "id": "seamless",
+        "pattern": r"(?i)\bseamless(ly)?\b",
+        "message": "'seamless' — meaningless AI adjective, describe what actually happens",
+        "severity": 2,
+        "file_types": [".md", ".txt"],
+    },
+    {
+        "id": "robust",
+        "pattern": r"(?i)\brobust\b",
+        "message": "'robust' — vague AI praise word, say what specifically makes it reliable",
+        "severity": 1,
+        "file_types": [".md", ".txt"],
+    },
+    {
+        "id": "cutting_edge",
+        "pattern": r"(?i)cutting[\s-]edge",
+        "message": "'cutting-edge' — marketing slop, describe the actual capability",
+        "severity": 2,
+        "file_types": [".md", ".txt"],
+    },
+    {
+        "id": "at_its_core",
+        "pattern": r"(?i)at its core",
+        "message": "'at its core' — AI filler phrase, just say the thing",
+        "severity": 2,
+        "file_types": [".md", ".txt"],
+    },
+    {
+        "id": "lets_unpack",
+        "pattern": r"(?i)let'?s unpack",
+        "message": "'let's unpack' — AI tell, just explain it",
+        "severity": 2,
+        "file_types": [".md", ".txt"],
+    },
+    {
+        "id": "speaks_volumes",
+        "pattern": r"(?i)speaks volumes",
+        "message": "'speaks volumes' — cliché, say what it actually means",
+        "severity": 2,
+        "file_types": [".md", ".txt"],
+    },
+    {
+        "id": "game_changer",
+        "pattern": r"(?i)game[\s-]changer",
+        "message": "'game-changer' — marketing filler, describe the actual impact",
+        "severity": 2,
+        "file_types": [".md", ".txt"],
+    },
+    {
+        "id": "synergy",
+        "pattern": r"(?i)\bsynergy\b|\bsynergies\b",
+        "message": "'synergy' — corporate AI buzzword",
+        "severity": 2,
+        "file_types": [".md", ".txt"],
+    },
+    {
+        "id": "pivotal",
+        "pattern": r"(?i)\bpivotal\b",
+        "message": "'pivotal' — AI intensifier, use 'key' or 'critical' or just drop it",
+        "severity": 2,
+        "file_types": [".md", ".txt"],
+    },
+    {
+        "id": "nuanced",
+        "pattern": r"(?i)\bnuanced\b",
+        "message": "'nuanced' — vague, describe the actual complexity",
+        "severity": 1,
+        "file_types": [".md", ".txt"],
+    },
+    {
+        "id": "compelling",
+        "pattern": r"(?i)\bcompelling\b",
+        "message": "'compelling' — AI praise word, show why it's compelling instead",
+        "severity": 1,
+        "file_types": [".md", ".txt"],
+    },
+    {
+        "id": "indeed",
+        "pattern": r"(?i)^indeed[,\s]|\. indeed[,\s]",
+        "message": "'Indeed' as sentence opener — AI verbal tic, cut it",
+        "severity": 2,
+        "file_types": [".md", ".txt"],
+    },
+    {
+        "id": "testament",
+        "pattern": r"(?i)\ba testament to\b",
+        "message": "'a testament to' — AI filler, say what it shows directly",
+        "severity": 2,
+        "file_types": [".md", ".txt"],
+    },
+    {
+        "id": "navigate_landscape",
+        "pattern": r"(?i)navigate (the |this |a )?(complex |digital |ever-changing )?landscape",
+        "message": "'navigate the landscape' — AI spatial metaphor, be specific",
+        "severity": 2,
+        "file_types": [".md", ".txt"],
+    },
+    {
+        "id": "todays_world",
+        "pattern": r"(?i)in today'?s (fast-paced|digital|modern|ever-changing) (world|age|landscape|era)",
+        "message": "'in today's fast-paced world' — AI generic opener, cut entirely",
+        "severity": 3,
+        "file_types": [".md", ".txt"],
+    },
+    {
+        "id": "comprehensive",
+        "pattern": r"(?i)\bcomprehensive\b",
+        "message": "'comprehensive' — vague AI intensifier, just describe what it covers",
+        "severity": 1,
+        "file_types": [".md", ".txt"],
+    },
+    {
+        "id": "crucial",
+        "pattern": r"(?i)\bcrucial\b",
+        "message": "'crucial' — overused AI intensifier, say why it matters",
+        "severity": 1,
         "file_types": [".md", ".txt"],
     },
 ]
