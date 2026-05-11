@@ -1,3 +1,5 @@
+![license](https://img.shields.io/github/license/Serhii-Leniv/anti-slop) ![stars](https://img.shields.io/github/stars/Serhii-Leniv/anti-slop?style=flat) ![issues](https://img.shields.io/github/issues/Serhii-Leniv/anti-slop) ![python](https://img.shields.io/badge/python-3.8%2B-blue) ![platforms](https://img.shields.io/badge/works%20on-Claude%20Code%20%7C%20Cursor%20%7C%20Antigravity-black)
+
 <div align="center">
 <pre>
               _   _            _             
@@ -83,11 +85,14 @@ Zero friction. You never have to ask for a review. It just happens.
 |---|---|
 | `catch(e) {}` — swallowed exception | 🔴 REBUILD |
 | `except:` / `except SomeError: pass` | 🔴 REBUILD |
+| Hardcoded secrets (`password = "..."`) | 🔴 REBUILD |
+| `.then()` with no `.catch()` | 🔴 REBUILD |
 | `const data =`, `const result =` — generic names | 🟡 SLOP |
 | `console.log()` in production paths | 🟡 SLOP |
 | `print()` debug statements | 🟡 SLOP |
 | `: any` — TypeScript escape hatch | 🟡 SLOP |
 | `fetch()` with no timeout | 🟡 SLOP |
+| `.catch(console.error)` — swallows after logging | 🟡 SLOP |
 | `// This function handles...` — obvious comments | 🔵 MINOR |
 | `// TODO fix later` — no ticket reference | 🔵 MINOR |
 | Magic numbers (`86400000`, `9999`) | 🔵 MINOR |
@@ -95,9 +100,12 @@ Zero friction. You never have to ask for a review. It just happens.
 ### UI
 | Pattern | Severity |
 |---|---|
-| `fontFamily: 'Inter'` — AI default font | 🟡 SLOP |
+| `fontFamily: 'Inter'` / `'Roboto'` — AI default fonts | 🟡 SLOP |
 | `from-purple`, `#7C3AED` — AI signature color | 🟡 SLOP |
 | `Lorem ipsum` placeholder | 🟡 SLOP |
+| `z-index: 9999` — arbitrary stacking | 🟡 SLOP |
+| `!important` — specificity hack | 🟡 SLOP |
+| `div onClick` with no `aria` role | 🟡 SLOP |
 | `rounded-full` on non-pill elements | 🔵 MINOR |
 | `shadow-lg` as default | 🔵 MINOR |
 | `hover:opacity-80` lazy interaction | 🔵 MINOR |
@@ -108,12 +116,18 @@ Zero friction. You never have to ask for a review. It just happens.
 | Pattern | Severity |
 |---|---|
 | `Certainly!`, `Of course!`, `Great question` | 🔴 REBUILD |
-| `delve` | 🔴 REBUILD |
-| `Let me explain...`, `Let me walk you through...` | 🟡 SLOP |
-| `leverage`, `utilize` | 🟡 SLOP |
-| `It's worth noting that` | 🟡 SLOP |
-| `In conclusion,`, `In summary,` | 🟡 SLOP |
-| `Not because X. Because Y.` dramatic structure | 🟡 SLOP |
+| `delve`, `tapestry`, `multifaceted` | 🔴 REBUILD |
+| `in today's fast-paced world` | 🔴 REBUILD |
+| `Let me explain...` | 🟡 SLOP |
+| `leverage`, `utilize`, `seamless`, `cutting-edge` | 🟡 SLOP |
+| `furthermore`, `moreover`, `needless to say` | 🟡 SLOP |
+| `paradigm shift`, `game-changer`, `synergy` | 🟡 SLOP |
+| `at its core`, `let's unpack`, `speaks volumes` | 🟡 SLOP |
+| `testament to`, `navigate the landscape` | 🟡 SLOP |
+| `it's worth noting`, `In conclusion,` | 🟡 SLOP |
+| `robust`, `nuanced`, `compelling`, `crucial` | 🔵 MINOR |
+
+> Full list: 58 rules across code, UI, and prose. See [`scanner/rules.py`](scanner/rules.py).
 
 ---
 
@@ -221,3 +235,21 @@ Allowlist rules that are intentional in your project (`~/.claude/anti-slop-profi
   "allowlist_rules": ["inter_font", "console_log"]
 }
 ```
+
+---
+
+## Contributing
+
+PRs welcome. To add rules — edit `scanner/rules.py`, test with the smoke test, submit PR.
+
+```bash
+cd scanner && python3 -c "
+from detect import scan_file, format_report
+import tempfile, os
+# write a test file with your pattern, verify it fires
+"
+```
+
+## License
+
+MIT
