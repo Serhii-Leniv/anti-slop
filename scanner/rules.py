@@ -24,10 +24,11 @@ CODE_RULES = [
     },
     {
         "id": "pass_in_except",
-        "pattern": r"except.*:\s*\n\s*pass",
+        "pattern": r"except[^:]*:\s*\n\s*pass\b",
         "message": "pass in except — error silently ignored",
         "severity": 3,
         "file_types": [".py"],
+        "multiline": True,
     },
 
     # --- Generic names ---
@@ -82,20 +83,34 @@ CODE_RULES = [
 
     # --- Obvious comments ---
     {
-        "id": "obvious_comment",
+        "id": "obvious_comment_js",
         "pattern": r"//\s*(This function|This method|This component|Here we|We need to|Now we)\b",
         "message": "obvious comment — explains what code does, not why",
         "severity": 1,
-        "file_types": [".ts", ".tsx", ".js", ".jsx", ".py", ".go"],
+        "file_types": [".ts", ".tsx", ".js", ".jsx", ".go"],
+    },
+    {
+        "id": "obvious_comment_py",
+        "pattern": r"#\s*(This function|This method|This component|Here we|We need to|Now we)\b",
+        "message": "obvious comment — explains what code does, not why",
+        "severity": 1,
+        "file_types": [".py"],
     },
 
     # --- TODO without ticket ---
     {
-        "id": "todo_no_ticket",
+        "id": "todo_no_ticket_js",
         "pattern": r"//\s*TODO(?!\s*[:#\(]\s*[A-Z]+-\d+|\s*\()",
         "message": "TODO without ticket reference — will never get done",
         "severity": 1,
-        "file_types": [".ts", ".tsx", ".js", ".jsx", ".py", ".go"],
+        "file_types": [".ts", ".tsx", ".js", ".jsx", ".go"],
+    },
+    {
+        "id": "todo_no_ticket_py",
+        "pattern": r"#\s*TODO(?!\s*[:#\(]\s*[A-Z]+-\d+|\s*\()",
+        "message": "TODO without ticket reference — will never get done",
+        "severity": 1,
+        "file_types": [".py"],
     },
 
     # --- Magic numbers ---

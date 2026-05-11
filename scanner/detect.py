@@ -37,10 +37,11 @@ def scan_file(filepath: str, profile: dict) -> list:
 
     try:
         with open(filepath, encoding="utf-8", errors="ignore") as f:
-            lines = f.readlines()
+            content = f.read()
     except Exception:
         return []
 
+    lines = content.splitlines(keepends=True)
     is_test = is_test_file(filepath)
     rules = get_rules_for_file(filepath, is_test)
     allowlisted = set(profile.get("allowlist_rules", []))
@@ -51,18 +52,32 @@ def scan_file(filepath: str, profile: dict) -> list:
         if rule["id"] in allowlisted:
             continue
 
-        pattern = re.compile(rule["pattern"], re.MULTILINE)
-
-        for lineno, line in enumerate(lines, start=1):
-            if pattern.search(line):
+        if rule.get("multiline"):
+            # scan full content — pattern spans multiple lines
+            pattern = re.compile(rule["pattern"], re.MULTILINE | re.DOTALL)
+            for match in pattern.finditer(content):
+                lineno = content[:match.start()].count("\n") + 1
+                snippet = lines[lineno - 1].rstrip() if lineno <= len(lines) else ""
                 findings.append({
                     "line": lineno,
                     "rule_id": rule["id"],
                     "message": rule["message"],
                     "severity": rule["severity"],
                     "severity_label": SEVERITY_LABELS[rule["severity"]],
-                    "snippet": line.rstrip(),
+                    "snippet": snippet,
                 })
+        else:
+            pattern = re.compile(rule["pattern"], re.MULTILINE)
+            for lineno, line in enumerate(lines, start=1):
+                if pattern.search(line):
+                    findings.append({
+                        "line": lineno,
+                        "rule_id": rule["id"],
+                        "message": rule["message"],
+                        "severity": rule["severity"],
+                        "severity_label": SEVERITY_LABELS[rule["severity"]],
+                        "snippet": line.rstrip(),
+                    })
 
     # deduplicate same rule hitting same line
     seen = set()
