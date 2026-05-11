@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
 PostToolUse hook for Write|Edit events.
-Reads stdin JSON from Claude Code, extracts file path, runs scanner.
-Exits 0 (allow) always — we never block writes, just inject findings.
-Findings go to stderr → Claude reads and fixes inline.
+Works with Claude Code, Cursor, and Antigravity.
+Reads stdin JSON, extracts file path, runs scanner.
+Exits 0 always — never blocks writes, just injects findings via stderr.
 Minor findings go to log silently.
 """
 
@@ -11,7 +11,7 @@ import sys
 import json
 import os
 
-# resolve scanner path relative to this file
+# resolve scanner path — works regardless of platform or install location
 HOOK_DIR = os.path.dirname(os.path.abspath(__file__))
 PLUGIN_DIR = os.path.dirname(HOOK_DIR)
 SCANNER_DIR = os.path.join(PLUGIN_DIR, "scanner")

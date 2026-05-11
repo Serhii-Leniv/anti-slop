@@ -22,11 +22,30 @@ Every Write/Edit
 
 ## Install
 
+**Claude Code**
 ```bash
-claude plugin install ./anti-slop
-# or from github:
-claude plugin install github:yourname/anti-slop
+claude plugin install github:Serhii-Leniv/anti-slop
 ```
+
+**Cursor**
+```bash
+git clone https://github.com/Serhii-Leniv/anti-slop
+cd anti-slop && ./install.sh cursor
+```
+
+**Google Antigravity**
+```bash
+git clone https://github.com/Serhii-Leniv/anti-slop
+cd anti-slop && ./install.sh antigravity
+```
+
+**All platforms at once**
+```bash
+git clone https://github.com/Serhii-Leniv/anti-slop
+cd anti-slop && ./install.sh all
+```
+
+> **Note:** Antigravity doesn't support hooks yet — `/no-slop` runs manually only. Auto-firing works on Claude Code and Cursor.
 
 ## First run
 

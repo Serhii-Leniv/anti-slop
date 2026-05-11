@@ -1,0 +1,6 @@
+{
+  "name": "anti-slop",
+  "description": "Auto-detects AI slop in code, UI, and prose. Fires on every write. Zero LLM cost.",
+  "version": "0.1.0",
+  "author": "Serhii-Leniv"
+}

@@ -1,0 +1,15 @@
+{
+  "hooks": [
+    {
+      "event": "postToolUse",
+      "matcher": "Write|Edit",
+      "command": "python3 $CURSOR_PLUGIN_ROOT/hooks/scan.py",
+      "timeout": 8000
+    },
+    {
+      "event": "sessionStart",
+      "command": "python3 $CURSOR_PLUGIN_ROOT/hooks/load_profile.py",
+      "timeout": 5000
+    }
+  ]
+}
