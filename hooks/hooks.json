@@ -3,12 +3,12 @@
     {
       "event": "PostToolUse",
       "matcher": "Write|Edit",
-      "command": "python3 hooks/scan.py",
+      "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/scan.py",
       "timeout": 8000
     },
     {
       "event": "SessionStart",
-      "command": "python3 hooks/load_profile.py",
+      "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/load_profile.py",
       "timeout": 5000
     }
   ]
