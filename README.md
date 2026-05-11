@@ -1,4 +1,13 @@
-# anti-slop
+```
+ _______  _       __________________     _______  _        _______  _______ 
+(  ___  )( (    /|\__   __/\__   __/    (  ____ \( \      (  ___  )(  ____ )
+| (   ) ||  \  ( |   ) (      ) (       | (    \/| (      | (   ) || (    )|
+| (___) ||   \ | |   | |      | | _____ | (_____ | |      | |   | || (____)|
+|  ___  || (\ \) |   | |      | |(_____)(_____  )| |      | |   | ||  _____)
+| (   ) || | \   |   | |      | |             ) || |      | |   | || (      
+| )   ( || )  \  |   | |   ___) (___    /\____) || (____/\| (___) || )      
+|/     \||/    )_)   )_(   \_______/    \_______)(_______/(_______)|/       
+```
 
 > Stop AI from shipping AI-looking code.
 
@@ -55,19 +64,13 @@ Zero friction. You never have to ask for a review. It just happens.
 
 ---
 
-## Advantages Over Other Tools
+## Why anti-slop
 
-| | anti-slop | anti-slop-skill | taste-skill | stop-slop |
-|---|---|---|---|---|
-| Fires automatically | ✅ | ❌ manual | ❌ manual | ❌ manual |
-| Covers code | ✅ | ✅ | ❌ | ❌ |
-| Covers UI | ✅ | ❌ | ✅ | ❌ |
-| Covers prose | ✅ | ❌ | ❌ | ✅ |
-| Token cost (auto) | ~200/hit | ~5,000/review | ~2,000/review | ~1,000/review |
-| Adapts to your codebase | ✅ | ❌ | ❌ | ❌ |
-| Works on Claude Code | ✅ | ✅ | ✅ | ✅ |
-| Works on Cursor | ✅ | ❌ | ❌ | ❌ |
-| Works on Antigravity | ✅ | ❌ | ❌ | ❌ |
+- **Automatic** — fires on every file write, no invocation needed
+- **Multi-domain** — code, UI, and prose in one plugin
+- **Zero detection cost** — pure local regex/AST, no LLM until something is found
+- **Adapts to your codebase** — `/no-slop init` learns your patterns, stops false positives
+- **Multi-platform** — Claude Code, Cursor, Google Antigravity
 
 ---
 
