@@ -1,24 +1,116 @@
 # anti-slop
 
-Auto-detects AI slop in code, UI, and prose. Fires on every Write/Edit. Zero LLM cost for detection.
+> Stop AI from shipping AI-looking code.
 
-## What it catches
+AI coding agents write fast. They also write the same patterns every time — swallowed exceptions, generic variable names, Inter font, purple gradients, "delve into", "it's worth noting". It works. It just looks and feels like it came from a machine.
 
-**Code** — swallowed exceptions, generic names (`data`, `result`), `console.log` in prod, TypeScript `any`, magic numbers, `fetch()` with no timeout
+**anti-slop** fires on every file you write and catches it before it lands in your codebase.
 
-**UI** — Inter font, purple gradients, `rounded-full` everywhere, `shadow-lg` default, John Doe placeholders, 3-col card grids
+---
 
-**Prose** — "delve", "leverage", "certainly", "it's worth noting", "in conclusion", "let me explain"
+## The Problem
 
-## How it works
+Every AI coding session produces some version of this:
+
+```ts
+// ❌ what Claude ships by default
+const data = await fetch('/api/users');
+try {
+  const result = data.json();
+  console.log(result);
+} catch(e) {}
+```
+
+```tsx
+// ❌ every AI frontend looks identical
+<div className="font-inter bg-gradient-to-r from-purple-500 shadow-lg rounded-full hover:opacity-80">
+  <h1>Welcome, John Doe</h1>
+</div>
+```
+
+```md
+<!-- ❌ every AI doc sounds the same -->
+Certainly! It's worth noting that we can leverage this to delve into...
+In conclusion, this approach utilizes best practices.
+```
+
+It runs. It deploys. It works. But it's recognizably, unmistakably AI slop.
+
+---
+
+## The Solution
+
+anti-slop installs as a plugin and watches every file Claude writes. The moment slop is detected, it tells Claude exactly what's wrong and where — before moving on.
 
 ```
-Every Write/Edit
-  → local regex scan (0 tokens)
-  → if severity ≥ 2: stderr report → Claude fixes inline
-  → if severity = 1: silent log
-  → never blocks the write
+Claude writes auth.ts
+  → scanner fires locally (0 tokens, pure regex/AST)
+  → finds 3 issues
+  → sends to Claude: "L45 swallowed exception, L12 generic name, L78 console.log"
+  → Claude fixes inline using existing context
+  → no extra LLM call needed
 ```
+
+Zero friction. You never have to ask for a review. It just happens.
+
+---
+
+## Advantages Over Other Tools
+
+| | anti-slop | anti-slop-skill | taste-skill | stop-slop |
+|---|---|---|---|---|
+| Fires automatically | ✅ | ❌ manual | ❌ manual | ❌ manual |
+| Covers code | ✅ | ✅ | ❌ | ❌ |
+| Covers UI | ✅ | ❌ | ✅ | ❌ |
+| Covers prose | ✅ | ❌ | ❌ | ✅ |
+| Token cost (auto) | ~200/hit | ~5,000/review | ~2,000/review | ~1,000/review |
+| Adapts to your codebase | ✅ | ❌ | ❌ | ❌ |
+| Works on Claude Code | ✅ | ✅ | ✅ | ✅ |
+| Works on Cursor | ✅ | ❌ | ❌ | ❌ |
+| Works on Antigravity | ✅ | ❌ | ❌ | ❌ |
+
+---
+
+## What It Catches
+
+### Code
+| Pattern | Severity |
+|---|---|
+| `catch(e) {}` — swallowed exception | 🔴 REBUILD |
+| `except:` / `except SomeError: pass` | 🔴 REBUILD |
+| `const data =`, `const result =` — generic names | 🟡 SLOP |
+| `console.log()` in production paths | 🟡 SLOP |
+| `print()` debug statements | 🟡 SLOP |
+| `: any` — TypeScript escape hatch | 🟡 SLOP |
+| `fetch()` with no timeout | 🟡 SLOP |
+| `// This function handles...` — obvious comments | 🔵 MINOR |
+| `// TODO fix later` — no ticket reference | 🔵 MINOR |
+| Magic numbers (`86400000`, `9999`) | 🔵 MINOR |
+
+### UI
+| Pattern | Severity |
+|---|---|
+| `fontFamily: 'Inter'` — AI default font | 🟡 SLOP |
+| `from-purple`, `#7C3AED` — AI signature color | 🟡 SLOP |
+| `Lorem ipsum` placeholder | 🟡 SLOP |
+| `rounded-full` on non-pill elements | 🔵 MINOR |
+| `shadow-lg` as default | 🔵 MINOR |
+| `hover:opacity-80` lazy interaction | 🔵 MINOR |
+| `grid-cols-3` equal card grid | 🔵 MINOR |
+| `John Doe` / `Jane Doe` placeholders | 🔵 MINOR |
+
+### Prose (`.md`, `.txt`)
+| Pattern | Severity |
+|---|---|
+| `Certainly!`, `Of course!`, `Great question` | 🔴 REBUILD |
+| `delve` | 🔴 REBUILD |
+| `Let me explain...`, `Let me walk you through...` | 🟡 SLOP |
+| `leverage`, `utilize` | 🟡 SLOP |
+| `It's worth noting that` | 🟡 SLOP |
+| `In conclusion,`, `In summary,` | 🟡 SLOP |
+| `Not because X. Because Y.` dramatic structure | 🟡 SLOP |
+
+---
 
 ## Install
 
@@ -45,39 +137,80 @@ git clone https://github.com/Serhii-Leniv/anti-slop
 cd anti-slop && ./install.sh all
 ```
 
-> **Note:** Antigravity doesn't support hooks yet — `/no-slop` runs manually only. Auto-firing works on Claude Code and Cursor.
+> Antigravity doesn't support hooks yet — `/no-slop` runs manually only. Auto-firing works on Claude Code and Cursor.
 
-## First run
+---
+
+## First Run
+
+After installing, personalize rules for your project:
 
 ```bash
-/no-slop init   # scan your codebase, build personal profile
+/no-slop init
 ```
 
-## Commands
+This scans your existing codebase and builds a profile. If your design system uses Inter — it gets allowlisted. If you already use `console.log` heavily in a debug utility — allowlisted. Rules adapt to you, not the other way around.
+
+---
+
+## Usage
+
+**It runs automatically.** Just write code normally. When slop is found:
+
+```
+[anti-slop] 3 finding(s) in src/auth.ts:
+  L45: [REBUILD] swallowed exception — hides errors silently
+  L12: [SLOP] generic name 'data' — name what it actually contains
+  L78: [SLOP] console.log in production path — use structured logger
+Fix before continuing.
+```
+
+Claude reads this, fixes the issues, moves on. You don't intervene.
+
+**Manual commands:**
 
 | Command | What it does |
 |---|---|
-| `/no-slop` | Deep manual review of recent files |
-| `/no-slop init` | Build personal profile from your codebase |
-| `/no-slop log` | Show minor findings logged silently |
-| `/no-slop stats` | Finding counts by rule |
+| `/no-slop` | Deep review of recent files — full subagent, line-by-line with rewrites |
+| `/no-slop init` | Scan codebase, build personal allowlist profile |
+| `/no-slop log` | Show minor findings that were silently logged |
+| `/no-slop stats` | Finding counts by rule for this session |
 | `/no-slop reset` | Delete profile, start fresh |
 
-## Token cost
+---
+
+## Token Cost
+
+Detection is local — no LLM involved until something is actually found.
 
 | Event | Tokens |
 |---|---|
-| Clean file | 0 |
-| Minor finding (severity 1) | 0 (silent log) |
+| Clean file written | 0 |
+| Minor finding (severity 1) | 0 — silent log only |
 | Real slop found | ~200 |
-| `/no-slop` deep review | ~3,000 |
-| Typical session | ~400–2,000 total |
+| Claude fixing from report | ~300–500 (uses existing context) |
+| `/no-slop` deep manual review | ~3,000 |
+| **Typical full session** | **~400–2,000 total** |
+
+One MCP server costs ~18,000 tokens **per turn**. This plugin costs less than that per session.
+
+---
 
 ## Customize
 
-Add rules to `scanner/rules.py`. Run `/no-slop init` to allowlist patterns already in your codebase.
+Add your own rules to `scanner/rules.py`:
 
-To allowlist a rule manually, edit `~/.claude/anti-slop-profile.json`:
+```python
+{
+    "id": "my_custom_rule",
+    "pattern": r"your_regex_here",
+    "message": "what this means and why it's slop",
+    "severity": 2,  # 1=minor, 2=slop, 3=rebuild
+    "file_types": [".ts", ".tsx"],
+}
+```
+
+Allowlist rules that are intentional in your project (`~/.claude/anti-slop-profile.json`):
 ```json
 {
   "allowlist_rules": ["inter_font", "console_log"]
