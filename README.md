@@ -250,6 +250,12 @@ import tempfile, os
 "
 ```
 
+## Privacy
+
+anti-slop runs entirely on your local machine. It reads only the file path 
+of files Claude writes, scans them locally with regex, and writes findings 
+to stderr. No data leaves your system. No network calls. No analytics.
+
 ## License
 
 MIT
