@@ -17,9 +17,8 @@ PLUGIN_DIR = os.path.dirname(HOOK_DIR)
 SCANNER_DIR = os.path.join(PLUGIN_DIR, "scanner")
 sys.path.insert(0, SCANNER_DIR)
 
-from detect import scan_file, format_report, log_silently, load_profile, THRESHOLD
+from detect import scan_file, format_report, log_silently, load_profile, resolve_profile_path, THRESHOLD
 
-PROFILE_PATH = os.path.expanduser("~/.claude/anti-slop-profile.json")
 LOG_PATH = os.path.expanduser("~/.claude/anti-slop-log.jsonl")
 
 
@@ -45,7 +44,7 @@ def main():
         sys.exit(0)
 
     filepath = os.path.expanduser(filepath)
-    profile = load_profile(PROFILE_PATH)
+    profile = load_profile(resolve_profile_path(filepath))
     findings = scan_file(filepath, profile)
 
     if not findings:

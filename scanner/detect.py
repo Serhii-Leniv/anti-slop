@@ -14,6 +14,32 @@ SEVERITY_LABELS = {1: "minor", 2: "slop", 3: "rebuild"}
 THRESHOLD = 2  # only report to Claude if max severity >= this
 
 
+def find_project_root(start_path: str):
+    """Walk up from start_path looking for project root markers. Returns path or None."""
+    markers = {".git", "package.json", "pyproject.toml", "Cargo.toml", "go.mod"}
+    current = os.path.abspath(start_path)
+    while True:
+        for marker in markers:
+            if os.path.exists(os.path.join(current, marker)):
+                return current
+        parent = os.path.dirname(current)
+        if parent == current:
+            return None
+        current = parent
+
+
+def resolve_profile_path(filepath: str = None) -> str:
+    """Return project-local profile if it exists, else global ~/.claude/ fallback."""
+    global_path = os.path.expanduser("~/.claude/anti-slop-profile.json")
+    start = os.path.dirname(os.path.abspath(filepath)) if filepath else os.getcwd()
+    root = find_project_root(start)
+    if root:
+        local_path = os.path.join(root, ".anti-slop-profile.json")
+        if os.path.exists(local_path):
+            return local_path
+    return global_path
+
+
 def is_test_file(filepath: str) -> bool:
     name = os.path.basename(filepath).lower()
     return any(x in name for x in [".test.", ".spec.", "_test.", "test_", "__test__"])

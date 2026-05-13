@@ -7,7 +7,11 @@ Zero LLM. Pure AST/regex. Runs once.
 import os
 import re
 import json
+import sys
 from collections import Counter
+
+sys.path.insert(0, os.path.dirname(__file__))
+from detect import find_project_root
 
 # Rules that might be legit depending on project
 CONTEXTUAL_RULES = {
@@ -109,12 +113,16 @@ def scan_project(root: str, max_files: int = 200) -> dict:
 
 
 if __name__ == "__main__":
-    import sys
     root = sys.argv[1] if len(sys.argv) > 1 else "."
     profile = scan_project(root)
 
-    output_path = os.path.expanduser("~/.claude/anti-slop-profile.json")
-    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    project_root = find_project_root(os.path.abspath(root))
+    if project_root:
+        output_path = os.path.join(project_root, ".anti-slop-profile.json")
+    else:
+        output_path = os.path.expanduser("~/.claude/anti-slop-profile.json")
+
+    os.makedirs(os.path.dirname(os.path.abspath(output_path)), exist_ok=True)
 
     with open(output_path, "w") as f:
         json.dump(profile, f, indent=2)

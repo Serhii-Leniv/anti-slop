@@ -15,6 +15,7 @@ Build personal profile for this project:
 python3 ~/.claude/plugins/anti-slop/scanner/profile_builder.py .
 ```
 Scans existing codebase, learns your patterns, allowlists rules that are intentional.
+Saves `.anti-slop-profile.json` in the project root (detected via `.git`/`package.json`/`pyproject.toml`/`go.mod`). Falls back to `~/.claude/anti-slop-profile.json` if no project root found. Commit the file to share allowlists across your team.
 
 ### /no-slop log
 Show recent silently-logged minor findings:
@@ -30,7 +31,7 @@ for line in sys.stdin:
 ### /no-slop reset
 Delete profile and start fresh:
 ```bash
-rm ~/.claude/anti-slop-profile.json
+rm -f .anti-slop-profile.json ~/.claude/anti-slop-profile.json
 ```
 
 ### /no-slop stats
