@@ -13,7 +13,7 @@ from collections import Counter
 CONTEXTUAL_RULES = {
     "inter_font": {
         "check": lambda content: bool(re.search(r"['\"]Inter['\"]", content)),
-        "threshold": 3,  # if Inter appears 3+ times, it's intentional (design system)
+        "threshold": 3,
         "reason": "Inter font used 3+ times — likely your design system",
     },
     "console_log": {
@@ -30,6 +30,26 @@ CONTEXTUAL_RULES = {
         "check": lambda content: bool(re.search(r"grid-cols-3", content)),
         "threshold": 2,
         "reason": "3-column grid used multiple times — may be intentional layout",
+    },
+    "fetch_no_timeout": {
+        "check": lambda content: bool(re.search(r"\bfetch\s*\(", content)),
+        "threshold": 3,
+        "reason": "fetch() used frequently — project may have wrapper with timeout built in",
+    },
+    "generic_var_result": {
+        "check": lambda content: bool(re.search(r"\bconst\s+result\s*=|\blet\s+result\s*=", content)),
+        "threshold": 5,
+        "reason": "'result' used frequently — may be intentional convention in this codebase",
+    },
+    "unhandled_promise": {
+        "check": lambda content: bool(re.search(r"\.then\s*\(", content)),
+        "threshold": 8,
+        "reason": ".then() chains common — project may use promise patterns throughout",
+    },
+    "shadow_lg_everywhere": {
+        "check": lambda content: bool(re.search(r"shadow-lg", content)),
+        "threshold": 5,
+        "reason": "shadow-lg used frequently — may be your design system default",
     },
 }
 

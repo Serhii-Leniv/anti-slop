@@ -113,30 +113,32 @@ CODE_RULES = [
         "file_types": [".py"],
     },
 
-    # --- Magic numbers (excludes common HTTP codes, powers of 2, etc.) ---
+    # --- Magic numbers (excludes common HTTP codes, ports, time values, powers of 2) ---
     {
         "id": "magic_number",
-        "pattern": r"(?<!['\"\w])\b(?!0\b|1\b|2\b|3\b|4\b|5\b|10\b|16\b|32\b|64\b|100\b|128\b|200\b|201\b|204\b|256\b|301\b|302\b|400\b|401\b|403\b|404\b|429\b|500\b|502\b|503\b|1000\b|1024\b|2048\b|4096\b)\d{3,}\b(?!['\"\w%])",
+        "pattern": r"(?<!['\"\w])\b(?!0\b|1\b|2\b|3\b|4\b|5\b|10\b|16\b|32\b|64\b|100\b|128\b|200\b|201\b|204\b|256\b|300\b|301\b|302\b|304\b|307\b|308\b|400\b|401\b|403\b|404\b|408\b|409\b|410\b|422\b|429\b|500\b|501\b|502\b|503\b|504\b|1000\b|1024\b|2048\b|3000\b|3600\b|4096\b|5000\b|8000\b|8080\b|8443\b|9000\b|60000\b|86400\b)\d{3,}\b(?!['\"\w%])",
         "message": "magic number — extract to named constant",
         "severity": 1,
         "file_types": [".ts", ".tsx", ".js", ".jsx", ".py"],
     },
 
     # --- No timeout on fetch ---
+    # severity 1 (silent log): line-by-line regex can't see multiline fetch({signal})
     {
         "id": "fetch_no_timeout",
-        "pattern": r"\bfetch\s*\(",
+        "pattern": r"\bfetch\s*\((?![^)]*\b(signal|AbortSignal|AbortController|timeout)\b)",
         "message": "fetch() with no timeout — hangs forever on network failure",
-        "severity": 2,
+        "severity": 1,
         "file_types": [".ts", ".tsx", ".js", ".jsx"],
     },
 
     # --- Unhandled promise ---
+    # severity 2: can't detect .catch() elsewhere in a chain without AST
     {
         "id": "unhandled_promise",
         "pattern": r"\.then\s*\([^)]+\)\s*;",
         "message": "unhandled promise — .then() with no .catch(), rejection silently lost",
-        "severity": 3,
+        "severity": 2,
         "file_types": [".ts", ".tsx", ".js", ".jsx"],
     },
 
@@ -158,15 +160,9 @@ CODE_RULES = [
         "file_types": [".ts", ".tsx", ".js", ".jsx", ".py", ".go", ".java", ".cs"],
     },
 
-    # --- async without try/catch ---
-    {
-        "id": "async_no_trycatch",
-        "pattern": r"async\s+function\s+\w+[^{]*\{(?![^}]*try\s*\{)",
-        "message": "async function with no try/catch — unhandled rejection crashes silently",
-        "severity": 2,
-        "file_types": [".ts", ".tsx", ".js", ".jsx"],
-        "multiline": True,
-    },
+    # async_no_trycatch removed: regex lookahead [^}]* stops at first } in body
+    # (object literal, generic type, destructure), so virtually every real async
+    # function fires. Needs AST — use @typescript-eslint/no-floating-promises instead.
 
 ]
 
@@ -258,7 +254,8 @@ UI_RULES = [
     # --- Missing aria on interactive elements ---
     {
         "id": "div_onclick_no_aria",
-        "pattern": r"<div[^>]+onClick[^>]*(?!aria-)[^>]*>",
+        # Two lookaheads from <div: must have onClick, must NOT have aria- anywhere before >
+        "pattern": r"<div\b(?=[^>]*\bonClick\b)(?![^>]*\baria-)[^>]*>",
         "message": "div with onClick but no aria role — use <button> or add role+aria",
         "severity": 2,
         "file_types": [".tsx", ".jsx"],
